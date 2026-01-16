@@ -8,6 +8,14 @@ export default function Admin() {
     const [view, setView] = useState("products");
     const [selectedProduct, setSelectedProduct] = useState(null);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 4;
+    
+    const lastIndex = currentPage * itemsPerPage;
+    const firstIndex = lastIndex - itemsPerPage;
+    const currentProducts = products.slice(firstIndex, lastIndex);
+    const totalPages = Math.ceil(products.length / itemsPerPage);
+
     useEffect(() => {
         if (view === "products") getProduct();
     }, [view]);
@@ -18,6 +26,7 @@ export default function Admin() {
                 withCredentials: true,
             });
             setProducts(res.data.products);
+            setCurrentPage(1); 
         } catch (error) {
             console.log(error.message);
         }
@@ -36,6 +45,7 @@ export default function Admin() {
         }
     };
 
+
     return (
         <>
             <Navbar />
@@ -48,7 +58,7 @@ export default function Admin() {
                         <li
                             onClick={() => setView("products")}
                             className={`px-4 py-2 rounded-lg cursor-pointer transition
-              ${view === "products"
+                            ${view === "products"
                                     ? "bg-indigo-600 text-white"
                                     : "hover:bg-slate-700"
                                 }`}
@@ -59,7 +69,7 @@ export default function Admin() {
                         <li
                             onClick={() => setView("add")}
                             className={`px-4 py-2 rounded-lg cursor-pointer transition
-                                    ${view === "add"
+                            ${view === "add"
                                     ? "bg-indigo-600 text-white"
                                     : "hover:bg-slate-700"
                                 }`}
@@ -89,7 +99,7 @@ export default function Admin() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {products.map((p) => (
+                                        {currentProducts.map((p) => (
                                             <tr
                                                 key={p._id}
                                                 className="text-center border-t hover:bg-slate-50"
@@ -101,8 +111,8 @@ export default function Admin() {
                                                 <td className="p-3">
                                                     <img
                                                         src={p.image}
-                                                        alt={p.name}
                                                         className="w-16 h-16 rounded-lg object-cover mx-auto"
+                                                        alt=""
                                                     />
                                                 </td>
                                                 <td className="p-3 space-x-2">
@@ -127,6 +137,37 @@ export default function Admin() {
                                     </tbody>
                                 </table>
                             </div>
+
+                            <div className="flex justify-center gap-2 mt-6">
+                                <button
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(currentPage - 1)}
+                                    className="px-3 py-1 rounded bg-slate-300 hover:bg-slate-400 disabled:opacity-50"
+                                >
+                                    Prev
+                                </button>
+
+                                {[...Array(totalPages)].map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => setCurrentPage(index + 1)}
+                                        className={`px-3 py-1 rounded ${currentPage === index + 1
+                                            ? "bg-indigo-600 text-white"
+                                            : "bg-slate-200 hover:bg-slate-300"
+                                            }`}
+                                    >
+                                        {index + 1}
+                                    </button>
+                                ))}
+
+                                <button
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage(currentPage + 1)}
+                                    className="px-3 py-1 rounded bg-slate-300 hover:bg-slate-400 disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </>
                     )}
 
@@ -140,7 +181,8 @@ export default function Admin() {
             <Footer />
         </>
     );
-}
+};
+
 
 
 function AddProduct({ setView }) {

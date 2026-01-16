@@ -7,6 +7,7 @@ const routes=express.Router();
 
 routes.post('/create',upload.single('image'),productCreate);
 routes.get('/get',productGet);
+
 routes.delete('/delete/:id',productDelete);
 routes.put('/update/:id',upload.single('image'),productUpdate);
 

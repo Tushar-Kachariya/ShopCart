@@ -36,8 +36,9 @@ export default function Login() {
 
       localStorage.setItem("name", res.data.user.userName);
       localStorage.setItem("role", res.data.user.role);
+      localStorage.setItem("email", res.data.user.email);
 
-      alert(res.data.message || "Login successful!");
+      
 
       if (res.data.user.role === "admin") {
         navigate("/admin");

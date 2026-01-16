@@ -17,3 +17,18 @@ export const getProduct = async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 };
+
+export const productSearch = async (req, res) => {
+  try {
+    const search = req.query.search || "";
+    const products = await Product.find({
+    name: { $regex: search, $options: "i" } 
+  
+  });
+
+  res.json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
+};

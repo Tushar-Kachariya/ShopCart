@@ -34,7 +34,8 @@ function Profile() {
 
                 <div className="mt-6 space-y-3">
                     <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition">
-                        {(user.role === 'admin') ? <NavLink to="/admin">
+                        {(user.role === 'admin') ? 
+                        <NavLink to="/admin">
                             <button >
                                 Admin
                             </button>

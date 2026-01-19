@@ -8,6 +8,7 @@ export const isAuth = (req, res, next) => {
   if (!token) {
     return res.status(401).json({ message: "No token, access denied" });
   }
+  
 
   try {
     const decoded = jwt.verify(token, JWT_SEC);
@@ -25,4 +26,14 @@ export const isAdmin = (req, res, next) => {
   }
   next();
 };
+
+export const requireSession = (req, res, next) => {
+  if (!req.session || !req.session.userId) {
+    res.clearCookie("connect.sid");
+    res.clearCookie("token");
+    return res.status(401).json({ message: "Session expired" });
+  }
+  next();
+};
+
 

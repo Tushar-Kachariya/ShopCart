@@ -5,7 +5,7 @@ import userRoutes from "./Routes/user.js";
 import cors from "cors";
 import MongoStore from 'connect-mongo';
 import adminRotes from './Routes/admin.js'
-import { isAdmin,isAuth } from "./middleware/auth.js";
+import { isAdmin,isAuth ,requireSession} from "./middleware/auth.js";
 import session from "express-session";
 import cookieParser from 'cookie-parser';
 import RegularUser from './Routes/RegularUser.js'
@@ -34,14 +34,14 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
-    secure: false,
+    maxAge: 1000 * 60 * 10 ,
+    secure: false,  
     httpOnly: true
   },
   store: MongoStore.create({
     mongoUrl: 'mongodb://localhost:27017/test',
     collectionName: 'sessions',
-    ttl: 14 * 24 * 60 * 60
+    ttl: 60*10
   })
 }));
 
@@ -50,8 +50,8 @@ app.get("/", (req, res) => {
   res.send("hello world");
 });
 app.use("/api/user", userRoutes);
-app.use("/api/RegularUser",isAuth,RegularUser );
-app.use('/api/admin', isAuth, isAdmin, adminRotes);
+app.use("/api/RegularUser",isAuth,requireSession,RegularUser );
+app.use('/api/admin', isAuth, isAdmin, requireSession,adminRotes);
 
 
 app.listen(PORT, () => {

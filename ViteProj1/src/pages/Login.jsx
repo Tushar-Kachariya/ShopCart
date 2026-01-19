@@ -3,6 +3,7 @@ import Navbar from "../componets/Navbar";
 import { useNavigate, NavLink } from "react-router-dom";
 import axios from "axios";
 import Footer from "../componets/Footer";
+import api from "../api/axios";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,8 +29,8 @@ export default function Login() {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/user/login",
+      const res = await api.post(
+        "/user/login",
         data,
         { withCredentials: true }
       );

@@ -1,8 +1,11 @@
 import React from "react";
 import Navbar from "../componets/Navbar";
 import Footer from "../componets/Footer";
+import { NavLink } from "react-router-dom";
 
 function Home() {
+
+  const user = localStorage.getItem('name');
   return (
     <>
       <Navbar />
@@ -14,22 +17,33 @@ function Home() {
           </h1>
 
           <p className="text-gray-600 mb-8 text-lg">
-            Build modern, fast, and scalable ecommerce applications using
-            React & Tailwind CSS.
+            A smooth shopping experience with smart cart management and secure checkout.
           </p>
 
-          <div className="flex justify-center gap-4">
-            <button className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
-              Get Started
-            </button>
 
-            <button className="px-8 py-3 border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 transition">
-              Learn More
-            </button>
+          <div className="flex justify-center gap-4">
+            <NavLink to='/login'> <button className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+              Get Started
+            </button></NavLink>
+
+            {
+              user ?
+                <NavLink to='/profile'>
+                  <button className="px-8 py-3 border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 transition">
+                    Profile Info
+                  </button>
+                </NavLink>
+                :
+                <NavLink to='/login'>
+                  <button className="px-8 py-3 border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 transition">
+                    Login Now
+                  </button>
+                </NavLink>
+
+            }
           </div>
         </div>
       </section>
-
       <Footer />
     </>
   );

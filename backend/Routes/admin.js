@@ -5,6 +5,7 @@ import  upload  from '../middleware/Multer.js';
 import {productCreate,productGet,productDelete,productUpdate} from '../Controllers/productController.js'
 const routes=express.Router();
 
+
 routes.post('/create',upload.single('image'),productCreate);
 routes.get('/get',productGet);
 

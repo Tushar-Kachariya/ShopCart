@@ -1,31 +1,39 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../componets/Navbar";
 import Footer from "../componets/Footer";
-import axios from "axios";
+import api from "../api/axios";
 
 export default function RegularUser() {
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  const lastIndex = currentPage * itemsPerPage;
+  const firstIndex = lastIndex - itemsPerPage;
+  const currentProducts = products.slice(firstIndex, lastIndex);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const res = await axios.get(
-        `http://localhost:5000/api/RegularUser/SearchProduct?search=${query}`, {
-        withCredentials: true,
+      try {
+        const res = await api.get(
+          `/RegularUser/SearchProduct?search=${query}&category=${category}`
+        );
+        setProducts(res.data);
+      } catch (error) {
+        console.log("Search Error:", error.message);
       }
-      );
-      setProducts(res.data);
     };
 
     fetchProducts();
-  }, [query]);
+  }, [query, category]);
 
   const getProduct = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/RegularUser/getProduct",
-        { withCredentials: true }
-      );
+      const res = await api.get("/RegularUser/getProduct");
       setProducts(res.data.products);
     } catch (error) {
       console.log("Error:", error.message);
@@ -37,7 +45,7 @@ export default function RegularUser() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
       <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-24">
@@ -54,9 +62,8 @@ export default function RegularUser() {
         </div>
       </section>
 
-      <main className="flex-grow container mx-auto px-4 py-14">
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+      <main className="flex-grow container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {[
             { title: "Explore Products", desc: "Latest items available now." },
             { title: "Orders", desc: "Track your recent purchases." },
@@ -64,7 +71,7 @@ export default function RegularUser() {
           ].map((item, i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition"
+              className="bg-white rounded-2xl shadow-md border border-slate-200 p-6 hover:shadow-lg transition duration-300"
             >
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
                 {item.title}
@@ -75,59 +82,103 @@ export default function RegularUser() {
         </div>
 
         <section>
-          <h2 className="text-3xl font-bold text-gray-800 mb-10">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6">
             Latest Products
           </h2>
-          <input
-            type="text"
-            placeholder="Search product..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+
+          <div className="flex flex-col md:flex-row gap-4 mb-8 items-start md:items-center">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">All Categories</option>
+              <option value="Toys">Toys</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Books">Books</option>
+              <option value="Electronics">Electronics</option>
+            </select>
+
+            <input
+              type="text"
+              placeholder="Search product..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full md:w-1/3 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
 
           {products.length === 0 ? (
-            <p className="text-center text-gray-500">
-              No products available
-            </p>
+            <p className="text-center text-gray-500">No products available</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              {products.map((product) => (
-                <div
-                  key={product._id}
-                  className="bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg transition overflow-hidden"
-                >
-                  <img
-                    src={product.image || "https://via.placeholder.com/300"}
-                    alt={product.name}
-                    className="w-full h-44 object-cover"
-                  />
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {currentProducts.map((product) => (
+                  <div
+                    key={product._id}
+                    className="bg-white rounded-2xl shadow-md border border-slate-200 hover:shadow-lg transition duration-300 overflow-hidden flex flex-col"
+                  >
+                    <img
+                      src={product.image || "https://via.placeholder.com/300"}
+                      alt={product.name}
+                      className="w-full h-48 object-cover"
+                    />
 
-                  <div className="p-5">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {product.name}
-                    </h3>
-
-                    <p className="text-blue-600 font-bold text-lg mt-1">
-                      ₹{product.price}
-                    </p>
-
-                    <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                      {product.description}
-                    </p>
-
-                    <button className="mt-5 w-full bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 active:scale-95 transition">
-                      Add to Cart
-                    </button>
+                    <div className="p-4 flex flex-col flex-grow">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {product.name}
+                      </h3>
+                      <p className="text-blue-600 font-bold text-lg mt-1">
+                        ₹{product.price}
+                      </p>
+                      <p className="text-sm text-gray-500 mt-2 line-clamp-2 flex-grow">
+                        {product.description}
+                      </p>
+                      <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 active:scale-95 transition">
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  className="px-3 py-1 rounded bg-slate-300 hover:bg-slate-400 disabled:opacity-50"
+                >
+                  Prev
+                </button>
+
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentPage(index + 1)}
+                    className={`px-3 py-1 rounded ${
+                      currentPage === index + 1
+                        ? "bg-indigo-600 text-white"
+                        : "bg-slate-200 hover:bg-slate-300"
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="px-3 py-1 rounded bg-slate-300 hover:bg-slate-400 disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </>
           )}
         </section>
       </main>
 
       <Footer />
     </div>
-
   );
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../componets/Navbar";
 import Footer from "../componets/Footer";
 import axios from "axios";
+import api from "../api/axios";
 
 export default function Admin() {
     const [products, setProducts] = useState([]);
@@ -22,7 +23,7 @@ export default function Admin() {
 
     const getProduct = async () => {
         try {
-            const res = await axios.get("http://localhost:5000/api/admin/get", {
+            const res = await api.get("/admin/get", {
                 withCredentials: true,
             });
             setProducts(res.data.products);
@@ -35,8 +36,8 @@ export default function Admin() {
     const deleteProduct = async (id) => {
         if (!window.confirm("Are you sure you want to delete this product?")) return;
         try {
-            await axios.delete(
-                `http://localhost:5000/api/admin/delete/${id}`,
+            await api.delete(
+                `/admin/delete/${id}`,
                 { withCredentials: true }
             );
             getProduct();
@@ -154,7 +155,7 @@ export default function Admin() {
                                         className={`px-3 py-1 rounded ${currentPage === index + 1
                                             ? "bg-indigo-600 text-white"
                                             : "bg-slate-200 hover:bg-slate-300"
-                                            }`}
+                                            }`}     
                                     >
                                         {index + 1}
                                     </button>

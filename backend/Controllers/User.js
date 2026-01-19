@@ -67,12 +67,11 @@ export const login = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-      JWT_SEC,
-      { expiresIn: "1h" }
+      JWT_SEC
     );
 
     res.cookie("token", token, {
-      maxAge: 3600000,
+      maxAge: 1000 * 60 * 10,
       httpOnly: true,
       secure: false,
     });

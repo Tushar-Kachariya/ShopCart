@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "../componets/Navbar";
 import axios from "axios";
+import api from "../api/axios";
 import { useNavigate, NavLink } from "react-router-dom";
 import Footer from "../componets/Footer";
 
@@ -32,8 +33,8 @@ export default function Register() {
       return alert("Password must be at least 6 characters");
 
     try {
-      await axios.post(
-        "http://localhost:5000/api/user/create",
+      await api.post(
+        "/user/create",
         formData
       );
 

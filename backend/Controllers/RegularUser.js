@@ -21,14 +21,22 @@ export const getProduct = async (req, res) => {
 export const productSearch = async (req, res) => {
   try {
     const search = req.query.search || "";
-    const products = await Product.find({
-    name: { $regex: search, $options: "i" } 
-  
-  });
+    const category = req.query.category || "";
 
-  res.json(products);
+    const filter = {
+      name: { $regex: search, $options: "i" }
+    };
+
+    if (category) {
+      filter.category = { $regex: `^${category}$`, $options: "i" };
+    }
+
+    const products = await Product.find(filter);
+    res.json(products);
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Server error" });
   }
 };
+
+

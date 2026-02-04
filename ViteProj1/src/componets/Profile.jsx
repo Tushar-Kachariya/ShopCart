@@ -12,7 +12,7 @@ function Profile() {
         <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
             
             <div className="bg-white shadow-xl rounded-2xl w-full max-w-md p-6">
-                <h2 className="  text-3xl font-bold p-2">Profile :</h2>
+                <h2 className="  text-3xl font-bold p-2">  Profile </h2>
 
                 <div className="flex justify-center">
                     <div className="h-24 w-24  rounded-full bg-indigo-600 text-white flex items-center justify-center text-5xl font-bold">
@@ -33,21 +33,21 @@ function Profile() {
                 </div>
 
                 <div className="mt-6 space-y-3">
-                    <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition">
+                    
                         {(user.role === 'admin') ? 
                         <NavLink to="/admin">
-                            <button >
+                           <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition">
                                 Admin
                             </button>
                         </NavLink>
                             :
                             <NavLink to="/regularUser">
-                                <button >
+                                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition">
                                     Shop
                                 </button>
                             </NavLink>
                         }
-                    </button>
+                    
 
 
                 </div>

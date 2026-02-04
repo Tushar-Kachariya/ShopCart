@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Navbar from "../componets/Navbar";
 import { useNavigate, NavLink } from "react-router-dom";
-import axios from "axios";
 import Footer from "../componets/Footer";
 import api from "../api/axios";
 

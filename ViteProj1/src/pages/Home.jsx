@@ -23,7 +23,7 @@ function Home() {
 
           <div className="flex justify-center gap-4">
             <NavLink to='/login'> <button className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
-              Get Started
+              Go shopping 
             </button></NavLink>
 
             {

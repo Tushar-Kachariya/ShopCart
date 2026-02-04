@@ -5,18 +5,16 @@ export default function Footer() {
     <footer className="bg-slate-900 text-gray-400">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
 
-        {/* Brand */}
         <div>
           <h2 className="text-2xl font-extrabold text-white mb-3">
             Shop<span className="text-blue-500">Cart</span>
           </h2>
           <p className="text-sm leading-relaxed">
-            Your one-stop destination for quality products.
-            Built with modern MERN stack & Tailwind CSS.
+            Shop smarter, faster, and better — all in one place.
           </p>
+
         </div>
 
-        {/* Quick Links */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">
             Quick Links
@@ -29,7 +27,6 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Social */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">
             Follow Us
@@ -49,7 +46,6 @@ export default function Footer() {
 
       </div>
 
-      {/* Copyright */}
       <div className="border-t border-slate-700 text-center py-4 text-sm text-gray-500">
         © {new Date().getFullYear()} ShopCart. All rights reserved.
       </div>

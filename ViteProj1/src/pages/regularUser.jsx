@@ -1,26 +1,34 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../componets/Navbar";
 import Footer from "../componets/Footer";
+import { useDispatch } from "react-redux";
 import api from "../api/axios";
+import { addToCart } from "../features/cart/cartSlice";
 
 export default function RegularUser() {
+  //product set product from api
   const [products, setProducts] = useState([]);
+  // search and filter 
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("");
 
+  // pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-
   const lastIndex = currentPage * itemsPerPage;
   const firstIndex = lastIndex - itemsPerPage;
   const currentProducts = products.slice(firstIndex, lastIndex);
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
+  const dispatch = useDispatch();
+
+
+
+  // for search 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await api.get(
-          `/RegularUser/SearchProduct?search=${query}&category=${category}`
+          `/RegularUser/SearchProduct?search=${query}`
         );
         setProducts(res.data);
       } catch (error) {
@@ -29,8 +37,10 @@ export default function RegularUser() {
     };
 
     fetchProducts();
-  }, [query, category]);
+  }, [query]);
 
+
+  // fetch products
   const getProduct = async () => {
     try {
       const res = await api.get("/RegularUser/getProduct");
@@ -87,17 +97,7 @@ export default function RegularUser() {
           </h2>
 
           <div className="flex flex-col md:flex-row gap-4 mb-8 items-start md:items-center">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Categories</option>
-              <option value="Toys">Toys</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Books">Books</option>
-              <option value="Electronics">Electronics</option>
-            </select>
+
 
             <input
               type="text"
@@ -134,7 +134,15 @@ export default function RegularUser() {
                       <p className="text-sm text-gray-500 mt-2 line-clamp-2 flex-grow">
                         {product.description}
                       </p>
-                      <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 active:scale-95 transition">
+                      <button onClick={()=>{
+                        dispatch(addToCart({
+                          _id: product._id,
+                          image:product.image,
+                          name:product.name,
+                          price:product.price
+
+                        }))
+                      }} className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 active:scale-95 transition">
                         Add to Cart
                       </button>
                     </div>
@@ -155,11 +163,10 @@ export default function RegularUser() {
                   <button
                     key={index}
                     onClick={() => setCurrentPage(index + 1)}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === index + 1
+                    className={`px-3 py-1 rounded ${currentPage === index + 1
                         ? "bg-indigo-600 text-white"
                         : "bg-slate-200 hover:bg-slate-300"
-                    }`}
+                      }`}
                   >
                     {index + 1}
                   </button>

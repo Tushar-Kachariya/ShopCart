@@ -8,6 +8,7 @@ import adminRotes from './Routes/admin.js'
 import { isAdmin,isAuth ,requireSession} from "./middleware/auth.js";
 import session from "express-session";
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import RegularUser from './Routes/RegularUser.js'
 
 dotenv.config();
@@ -16,20 +17,20 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json({ limit: "10mb" }));
-
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true
 }));
 app.use(cookieParser())
 
+// Serve uploads folder so uploaded images are publicly accessible
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 
 
 app.use(session({
-
   secret: 'tusharkachariya2006',
   resave: false,
   saveUninitialized: false,
@@ -41,7 +42,7 @@ app.use(session({
   store: MongoStore.create({
     mongoUrl: 'mongodb://localhost:27017/test',
     collectionName: 'sessions',
-    ttl: 60*10
+    ttl:60*10
   })
 }));
 

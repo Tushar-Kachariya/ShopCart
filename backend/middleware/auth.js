@@ -9,7 +9,6 @@ export const isAuth = (req, res, next) => {
     return res.status(401).json({ message: "No token, access denied" });
   }
   
-
   try {
     const decoded = jwt.verify(token, JWT_SEC);
     req.user = decoded;

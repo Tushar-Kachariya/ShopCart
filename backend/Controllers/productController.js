@@ -2,7 +2,10 @@ import Product from "../Models/productModel.js";
 
 export const productCreate = async (req, res) => {
   try {
-    const { name, price, category, image, description } = req.body;
+    const { name, price, category, description } = req.body;
+
+    // If an image file was uploaded with multer, use it; otherwise accept an image URL from the body
+    const image = req.file ? `/uploads/${req.file.filename}` : req.body.image;
 
     if (!name || !price || !category || !image || !description) {
       return res.status(400).json({ msg: "All fields are required" });
@@ -16,22 +19,21 @@ export const productCreate = async (req, res) => {
       description,
     });
 
-
     res.status(201).json({
       success: true,
       message: "Product created successfully",
       product: newProduct,
     });
+
   } catch (error) {
     console.error("CREATE PRODUCT ERROR:", error.message);
     res.status(500).json({
       msg: error.message,
     });
   }
-
 };
 
-export const productGet = async (req, res) => {
+export const productGet = async (req, res) =>{
   try {
     const products = await Product.find();
 
@@ -83,7 +85,16 @@ export const productUpdate = async (req, res) => {
       return res.status(400).json({ msg: "Product ID is required" });
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(id,req.body);
+    // If a new file was uploaded, set image to that file path
+    if (req.file) {
+      req.body.image = `/uploads/${req.file.filename}`;
+    }
+
+    if (req.body.price) {
+      req.body.price = Number(req.body.price);
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, req.body, { new: true });
 
     if (!updatedProduct) {
       return res.status(404).json({ msg: "Product not found" });

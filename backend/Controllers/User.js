@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-import cookieParser from 'cookie-parser';
 import User from "../Models/User.js";
 import jwt from 'jsonwebtoken';
 
@@ -50,8 +49,12 @@ export const login = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+   
     if (!user) {
       return res.status(400).json({ message: "Email does not exist" });
+    }
+    if (user.isBlocked=== true) {
+      return res.status(400).json({ message: "User is block" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -65,7 +68,7 @@ export const login = async (req, res) => {
       {
         id: user._id,
         email: user.email,
-        role: user.role,
+        role: user.role
       },
       JWT_SEC
     );
@@ -94,25 +97,26 @@ export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      req.body
-    );
-
-    if (!updatedUser) {
+    const user = await User.findById(id);
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({
-      message: "User updated successfully",
-      user: updatedUser,
-    });
+    user.isBlocked = !user.isBlocked;
+    await user.save({ validateBeforeSave: false });
 
+    res.status(200).json({
+      message: user.isBlocked ? "User blocked" : "User unblocked",
+      user,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("UPDATE USER ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
 
 export const deleteUser = async (req, res) => {
   try {
@@ -156,6 +160,7 @@ export const getalluser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 
 export const logOut = async (req, res) => {

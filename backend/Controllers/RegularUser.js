@@ -1,70 +1,60 @@
 import Product from "../Models/productModel.js";
 import Order from "../Models/order.js";
-
+import User from "../Models/User.js";
 
 export const getProduct = async (req, res) => {
   try {
     const products = await Product.find();
 
-    if (!products || products.length === 0) {
-      return res.status(404).json({ msg: "No products found" });
-    }
-
     res.status(200).json({
       success: true,
-      message: "Products fetched successfully",
       products,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Server error" });
+    console.error("GET PRODUCT ERROR:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 export const productSearch = async (req, res) => {
   try {
     const search = req.query.search || "";
 
     const products = await Product.find({
-      name: { $regex: search, $options: "i" }
+      name: { $regex: search, $options: "i" },
     });
 
-    res.json(products);
+    res.status(200).json(products);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Server error" });
+    console.error("SEARCH ERROR:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 export const placeOrder = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
     const userId = req.user.id;
     const { cartItems } = req.body;
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
     }
+    const add = await User.findOne(req.user);
+    
 
     let totalAmount = 0;
 
-    const products = cartItems.map(item => {
+    const products = cartItems.map((item) => {
       const itemTotal = item.price * item.quantity;
       totalAmount += itemTotal;
 
-      return {  
+      return {
         productId: item._id,
-        image:item.image,
+        image: item.image,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
         total: itemTotal,
-
       };
     });
 
@@ -79,9 +69,35 @@ export const placeOrder = async (req, res) => {
       message: "Order placed successfully",
       order,
     });
+  } catch (error) {
+    console.error("PLACE ORDER ERROR:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getOneProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      product
+    });
 
   } catch (error) {
-    console.error("Place order error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
   }
 };

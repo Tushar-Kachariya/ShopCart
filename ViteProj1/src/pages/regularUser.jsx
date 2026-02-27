@@ -4,14 +4,12 @@ import Footer from "../componets/Footer";
 import { useDispatch } from "react-redux";
 import api from "../api/axios";
 import { addToCart } from "../features/cart/cartSlice";
+import { useNavigate } from "react-router-dom";
 
 export default function RegularUser() {
-  //product set product from api
   const [products, setProducts] = useState([]);
-  // search and filter 
   const [query, setQuery] = useState("");
-
-  // pagination
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
   const lastIndex = currentPage * itemsPerPage;
@@ -23,7 +21,6 @@ export default function RegularUser() {
 
 
 
-  // for search 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -40,7 +37,6 @@ export default function RegularUser() {
   }, [query]);
 
 
-  // fetch products
   const getProduct = async () => {
     try {
       const res = await api.get("/RegularUser/getProduct");
@@ -113,13 +109,15 @@ export default function RegularUser() {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
                 {currentProducts.map((product) => (
                   <div
                     key={product._id}
-                    className="bg-white rounded-2xl shadow-md border border-slate-200 hover:shadow-lg transition duration-300 overflow-hidden flex flex-col"
+                    onClick={() => navigate(`/product/${product._id}`)}
+                    className="bg-white rounded-2xl shadow-md border border-slate-200 hover:shadow-lg transition duration-300 overflow-hidden flex flex-col cursor-pointer"
                   >
                     <img
-                      src={product.image || "https://via.placeholder.com/300"}
+                      src={product.image || `http://localhost:5000${product.images[0]}`}
                       alt={product.name}
                       className="w-full h-48 object-cover"
                     />
@@ -128,21 +126,42 @@ export default function RegularUser() {
                       <h3 className="text-lg font-semibold text-gray-800">
                         {product.name}
                       </h3>
+
                       <p className="text-blue-600 font-bold text-lg mt-1">
                         ₹{product.price}
                       </p>
+
+                      <p className="text-lg mt-1 font-bold">
+                        {product.instock === 0 ? (
+                          <span className="text-red-600">Out of Stock</span>
+                        ) : (
+                          <span className="text-green-600">In Stock</span>
+                        )}
+                      </p>
+
                       <p className="text-sm text-gray-500 mt-2 line-clamp-2 flex-grow">
                         {product.description}
                       </p>
-                      <button onClick={()=>{
-                        dispatch(addToCart({
-                          _id: product._id,
-                          image:product.image,
-                          name:product.name,
-                          price:product.price
 
-                        }))
-                      }} className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 active:scale-95 transition">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          dispatch(
+                            addToCart({
+                              _id: product._id,
+                              name: product.name,
+                              price: product.price,
+                              category: product.category,
+                              instock: product.instock,
+                              // ✅ send a usable image
+                              image: product.image || product.images?.[0] || null,
+                              images: product.images || [],
+                            })
+                          );
+                        }}
+                        className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 active:scale-95 transition"
+                      >
                         Add to Cart
                       </button>
                     </div>
@@ -164,8 +183,8 @@ export default function RegularUser() {
                     key={index}
                     onClick={() => setCurrentPage(index + 1)}
                     className={`px-3 py-1 rounded ${currentPage === index + 1
-                        ? "bg-indigo-600 text-white"
-                        : "bg-slate-200 hover:bg-slate-300"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-slate-200 hover:bg-slate-300"
                       }`}
                   >
                     {index + 1}

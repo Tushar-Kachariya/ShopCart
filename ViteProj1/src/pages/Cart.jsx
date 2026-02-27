@@ -26,32 +26,28 @@ export default function Cart() {
   const currentProducts = cartItems.slice(firstIndex, lastIndex);
   const totalPages = Math.ceil(cartItems.length / itemsPerPage);
 
-  const navigate =useNavigate();
-
+  const navigate = useNavigate();
   const handelplacesubmit = async () => {
     try {
       const res = await api.post(
         "/RegularUser/place",
-        { cartItems, totalPrice },
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
+        { cartItems, totalPrice }
       );
-
-      console.log("ok", res.data);
 
       if (res.data.success) {
         console.log("Order placed successfully");
-        dispatch(clearCart()); 
+        dispatch(clearCart());
+        navigate('/ordersuccess');
       } else {
-        console.log("Something went wrong:", res.data.message);
+        alert(res.data.message);
       }
 
-      navigate('/ordersuccess');
-
     } catch (error) {
-      console.error("Internal server error:", error);
+      const message =
+        error.response?.data?.message || "Something went wrong";
+
+      console.log("Backend error:", message);
+      alert("Please complete login and your profile first");
     }
   };
 
@@ -77,26 +73,41 @@ export default function Cart() {
 
             {currentProducts.map((p) => (
               <div
-                key={p._id} 
-                className="flex flex-col sm:flex-row sm:items-center gap-4 border-b pb-4 mb-4"
+                key={p._id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 mb-4"
               >
-                <img
-                  src={p.image}
-                  alt={p.name}
-                  className="w-24 h-24 rounded-xl object-cover"
-                />
+                {/* Left Section (Image + Info) */}
+                <div
+                  onClick={() => navigate(`/product/${p._id}`)}
+                  className="flex items-center gap-4 cursor-pointer flex-1"
+                >
+                  <img
+                    src={
+                      p.image
+                        ? p.image.startsWith("data:") // base64
+                          ? p.image
+                          : p.image.startsWith("http") // already full url
+                            ? p.image
+                            : `http://localhost:5000${p.image}` // "/uploads/.."
+                        : "https://via.placeholder.com/150"
+                    }
+                    alt={p.name}
+                    className="w-20 h-20 rounded-lg object-cover"
+                  />
 
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-800">{p.name}</h3>
-                  <p className="text-sm text-slate-500">{p.category}</p>
-                  <p className="font-semibold text-indigo-600 mt-1">
-                    ₹{p.price}
-                  </p>
+                  <div>
+                    <h3 className="font-semibold text-slate-800">{p.name}</h3>
+                    <p className="text-sm text-slate-500">{p.category}</p>
+                    <p className="font-semibold text-indigo-600 mt-1">
+                      ₹{p.price}
+                    </p>
+                  </div>
                 </div>
 
+                {/* Quantity Controls */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => dispatch(decQty(p._id))} 
+                    onClick={() => dispatch(decQty(p._id))}
                     className="w-8 h-8 flex items-center justify-center border rounded-md hover:bg-slate-100 font-semibold"
                   >
                     −
@@ -107,15 +118,16 @@ export default function Cart() {
                   </span>
 
                   <button
-                    onClick={() => dispatch(incQty(p._id))} 
+                    onClick={() => dispatch(incQty(p._id))}
                     className="w-8 h-8 flex items-center justify-center border rounded-md hover:bg-slate-100 font-semibold"
                   >
                     +
                   </button>
                 </div>
 
+                {/* Remove Button */}
                 <button
-                  onClick={() => dispatch(removeItem(p._id))} 
+                  onClick={() => dispatch(removeItem(p._id))}
                   className="text-sm text-red-500 hover:underline"
                 >
                   Remove
@@ -185,8 +197,8 @@ export default function Cart() {
                   key={index}
                   onClick={() => setCurrentPage(index + 1)}
                   className={`px-3 py-1 rounded ${currentPage === index + 1
-                      ? "bg-indigo-600 text-white"
-                      : "bg-slate-200 hover:bg-slate-300"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-slate-200 hover:bg-slate-300"
                     }`}
                 >
                   {index + 1}

@@ -3,13 +3,26 @@ import Navbar from "../componets/Navbar";
 import { useNavigate, NavLink } from "react-router-dom";
 import Footer from "../componets/Footer";
 import api from "../api/axios";
+import { z } from "zod";
 
 export default function Login() {
   const navigate = useNavigate();
 
+  const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     email: "",
     password: "",
+  });
+
+  const Schema = z.object({
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Invalid email format"),
+
+    password: z
+      .string()
+      .min(6, "Password must be at least 6 characters"),
   });
 
   const handleChange = (e) => {
@@ -17,13 +30,21 @@ export default function Login() {
       ...data,
       [e.target.name]: e.target.value,
     });
+
+    setErrors({
+      ...errors,
+      [e.target.name]: undefined,
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!data.email || !data.password) {
-      alert("All fields are required");
+    const result = Schema.safeParse(data);
+
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      setErrors(fieldErrors);
       return;
     }
 
@@ -38,16 +59,15 @@ export default function Login() {
       localStorage.setItem("role", res.data.user.role);
       localStorage.setItem("email", res.data.user.email);
 
-      
-
       if (res.data.user.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/regularUser");
       }
+
     } catch (error) {
       alert(
-        error.response?.data?.message || "Something went wrong!"
+        error.response?.data?.message || "Login failed!"
       );
     }
   };
@@ -77,6 +97,11 @@ export default function Login() {
               placeholder="Enter your email"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email[0]}
+              </p>
+            )}
           </div>
 
           <div className="mb-6">
@@ -91,6 +116,11 @@ export default function Login() {
               placeholder="Enter your password"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password[0]}
+              </p>
+            )}
           </div>
 
           <button

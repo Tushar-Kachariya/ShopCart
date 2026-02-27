@@ -1,43 +1,146 @@
 import { Routes, Route } from "react-router-dom";
-import Register from "../src/pages/Register.jsx";
-import Login from "../src/pages/Login.jsx";
-import Home from "./pages/Home.jsx";
-import Admin from "./pages/admin.jsx";
-import RegularUser from "./pages/regularUser.jsx";
-import { ProtectedRoute, RedirectIfLoggedIn, RestrictForAdmin, RestrictForUser } from "./ProtectedRoute.jsx";
-import ProfilePage from "./pages/ProfilePage.jsx";
-import Cart from "./pages/Cart.jsx";
-import OrderSuccess from "./componets/OrderSuccess.jsx";
-import AdminUsers from "./componets/AdminUsers.jsx";
+
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import AdminDashboard from "./pages/AdminDashboard";
+import Admin from "./pages/admin";
+import RegularUser from "./pages/regularUser";
+import ProductDetailsView from "./componets/Productdetailes";
+
+import {
+  ProtectedRoute,
+  RedirectIfLoggedIn,
+  RestrictForAdmin,
+  RestrictForUser,
+} from "./ProtectedRoute";
+
+import ProfilePage from "./pages/ProfilePage";
+import Cart from "./pages/Cart";
+import OrderSuccess from "./componets/OrderSuccess";
+import AdminUsers from "./componets/AdminUsers";
+import UpdateProfile from "./pages/UpdateProfile";
+import AdminShowOrder from "./pages/AdminShowOrder";
+import UserOrder from "./pages/userOrder";
+import AddProduct from "./componets/AddProduct";
+import UpdateProduct from "./componets/UpdateProduct";
 
 export default function App() {
   return (
-    <div className=" select-none">
-      
+    <div className="select-non">
       <Routes>
-        <Route path="/register" element={<RedirectIfLoggedIn><Register /></RedirectIfLoggedIn>} />
-        <Route path="/login" element={<RedirectIfLoggedIn><Login /></RedirectIfLoggedIn>} />
-        <Route path='/' element={<Home />} />
-        <Route path='/Profile' element={<ProtectedRoute><ProfilePage/></ProtectedRoute>} />
-        <Route path='/ordersuccess' element={<ProtectedRoute><RestrictForAdmin><OrderSuccess/></RestrictForAdmin></ProtectedRoute>} />
-        <Route path='/Cart' element={<ProtectedRoute><RestrictForAdmin><Cart /></RestrictForAdmin></ProtectedRoute>} />
-        <Route path='/regularUser' element={<ProtectedRoute><RestrictForAdmin><RegularUser /></RestrictForAdmin></ProtectedRoute>} />
+
         <Route
-          path='/admin'
+          path="/register"
           element={
-            <ProtectedRoute >
-              <RestrictForUser><Admin /></RestrictForUser>
+            <RedirectIfLoggedIn>
+              <Register />
+            </RedirectIfLoggedIn>
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <RedirectIfLoggedIn>
+              <Login />
+            </RedirectIfLoggedIn>
+          }
+        />
+
+        <Route path="/" element={<Home />} />
+
+        <Route
+          path="/userorder"
+          element={
+            <ProtectedRoute>
+              <UserOrder />
             </ProtectedRoute>
           }
         />
+
         <Route
-          path='/adminuser'
+          path="/profile"
           element={
-            <ProtectedRoute >
-              <RestrictForUser><AdminUsers/></RestrictForUser>
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/ordersuccess"
+          element={
+            <ProtectedRoute>
+              <RestrictForAdmin>
+                <OrderSuccess />
+              </RestrictForAdmin>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/cart"
+          element={
+            
+              <RestrictForAdmin>
+                <Cart />
+              </RestrictForAdmin>
+            
+          }
+        />
+
+        <Route
+          path="/product/:id"
+          element={
+            
+              <RestrictForAdmin>
+                <ProductDetailsView />
+              </RestrictForAdmin>
+            
+          }
+        />
+
+        <Route
+          path="/regularuser"
+          element={
+            
+              <RestrictForAdmin>
+                <RegularUser />
+              </RestrictForAdmin>
+            
+          }
+        />
+
+        <Route
+          path="/updateprofile"
+          element={
+            <ProtectedRoute>
+              <RestrictForAdmin>
+                <UpdateProfile />
+              </RestrictForAdmin>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute>
+              <RestrictForUser>
+                <AdminDashboard />
+              </RestrictForUser>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Admin />} />
+          <Route path="add" element={<AddProduct />} />
+          <Route path="edit/:id" element={<UpdateProduct />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="orders" element={<AdminShowOrder />} />
+        </Route>
+
+
 
       </Routes>
     </div>

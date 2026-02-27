@@ -20,7 +20,6 @@ const OrderSuccess = () => {
     <>
       <Navbar />
 
-      {/* Main Content */}
       <div className="min-h-[80vh] flex items-center justify-center bg-gray-100 px-4">
         <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full">
           <CheckCircle size={80} className="text-green-500 mx-auto mb-4" />

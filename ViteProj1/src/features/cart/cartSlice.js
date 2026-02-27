@@ -1,46 +1,64 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-  items: [],
-};
+const initialState = { items: [] };
 
 const cartSlice = createSlice({
   name: "cart",
   initialState,
-
   reducers: {
-
     addToCart: (state, action) => {
-      const item = action.payload;
+      const product = action.payload;
+      if (!product?._id) return;
 
-      if (!item._id) { 
-        console.error("Product _id not found", item);
-        return;
-      }
+      const instock = Number(product.instock ?? 0);
+      if (instock <= 0) return;
 
-      const existingItem = state.items.find(i => i._id === item._id);
+      // ✅ take image from product.image OR product.images[0]
+      const image =
+        product.image ||
+        (product.images?.length ? product.images[0] : null);
+
+      const existingItem = state.items.find((i) => i._id === product._id);
 
       if (existingItem) {
-        existingItem.quantity += 1;
+        // ✅ keep stock + image updated
+        existingItem.instock = instock;
+        existingItem.image = image;
+        existingItem.images = product.images || existingItem.images || [];
+
+        // ✅ do NOT increase above instock
+        if (existingItem.quantity < existingItem.instock) {
+          existingItem.quantity += 1;
+        }
       } else {
-        state.items.push({ ...item, quantity: 1 });
+        state.items.push({
+          _id: product._id,
+          name: product.name || "",
+          price: Number(product.price ?? 0),
+          category: product.category || "",
+          instock,
+          quantity: 1,
+          image,                 // base64 OR "/uploads/xx.jpg"
+          images: product.images || [], // ✅ store array too
+        });
       }
     },
 
     incQty: (state, action) => {
-      const item = state.items.find(i => i._id === action.payload);
-      if (item) {
+      const item = state.items.find((i) => i._id === action.payload);
+      if (!item) return;
+
+      if (item.quantity < Number(item.instock ?? 0)) {
         item.quantity += 1;
       }
     },
 
     decQty: (state, action) => {
-      const item = state.items.find(i => i._id === action.payload);
-
+      const item = state.items.find((i) => i._id === action.payload);
       if (!item) return;
 
       if (item.quantity === 1) {
-        state.items = state.items.filter(i => i._id !== action.payload);
+        state.items = state.items.filter((i) => i._id !== action.payload);
       } else {
         item.quantity -= 1;
       }
@@ -51,10 +69,12 @@ const cartSlice = createSlice({
     },
 
     removeItem: (state, action) => {
-      state.items = state.items.filter(i => i._id !== action.payload);
+      state.items = state.items.filter((i) => i._id !== action.payload);
     },
   },
 });
 
-export const { addToCart, incQty, decQty, clearCart, removeItem } = cartSlice.actions;
+export const { addToCart, incQty, decQty, clearCart, removeItem } =
+  cartSlice.actions;
+
 export default cartSlice.reducer;

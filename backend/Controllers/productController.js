@@ -1,39 +1,41 @@
 import Product from "../Models/productModel.js";
+import Order from "../Models/order.js";
+import User from "../Models/User.js";
 
 export const productCreate = async (req, res) => {
   try {
-    const { name, price, category, description } = req.body;
+    const { name, price,quantity, category, description } = req.body;
 
-    // If an image file was uploaded with multer, use it; otherwise accept an image URL from the body
-    const image = req.file ? `/uploads/${req.file.filename}` : req.body.image;
+    const images = (req.files || []).map((file) => `/uploads/${file.filename}`);
 
-    if (!name || !price || !category || !image || !description) {
-      return res.status(400).json({ msg: "All fields are required" });
+    if (!name || !price || !category || !description) {
+      return res.status(400).json({ success: false, msg: "All fields are required" });
+    }
+
+    if (images.length === 0) {
+      return res.status(400).json({ success: false, msg: "At least one image is required" });
     }
 
     const newProduct = await Product.create({
       name,
       price: Number(price),
+      instock:quantity,
       category,
-      image,
       description,
+      images, 
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Product created successfully",
       product: newProduct,
     });
-
   } catch (error) {
-    console.error("CREATE PRODUCT ERROR:", error.message);
-    res.status(500).json({
-      msg: error.message,
-    });
+    console.error("CREATE PRODUCT ERROR:", error);
+    return res.status(500).json({ success: false, msg: error.message });
   }
 };
-
-export const productGet = async (req, res) =>{
+export const productGet = async (req, res) => {
   try {
     const products = await Product.find();
 
@@ -77,6 +79,58 @@ export const productDelete = async (req, res) => {
   }
 };
 
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ msg: "user ID is required" });
+    }
+
+    const delUser = await User.findByIdAndDelete(id);
+
+    if (!delUser) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "user deleted successfully",
+      product: delUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+export const productGetOne = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      product
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};
+
 export const productUpdate = async (req, res) => {
   try {
     const { id } = req.params;
@@ -85,7 +139,6 @@ export const productUpdate = async (req, res) => {
       return res.status(400).json({ msg: "Product ID is required" });
     }
 
-    // If a new file was uploaded, set image to that file path
     if (req.file) {
       req.body.image = `/uploads/${req.file.filename}`;
     }
@@ -103,6 +156,31 @@ export const productUpdate = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Product updated successfully",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+export const updateOrderSatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ msg: "Product ID is required" });
+    }
+
+    const updatedProduct = await Order.findByIdAndUpdate(id, req.body, { new: true });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
       product: updatedProduct,
     });
   } catch (error) {

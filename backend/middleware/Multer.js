@@ -3,7 +3,6 @@ import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 
-// Ensure uploads directory exists (use a stable, project-root-relative path)
 const UPLOAD_DIR = path.resolve("./uploads");
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -11,7 +10,6 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // store uploads in the project-level `uploads` folder
     cb(null, UPLOAD_DIR);
   },
   filename: function (req, file, cb) {

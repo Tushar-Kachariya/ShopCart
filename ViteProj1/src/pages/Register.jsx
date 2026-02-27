@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Navbar from "../componets/Navbar";
-import axios from "axios";
 import api from "../api/axios";
 import { useNavigate, NavLink } from "react-router-dom";
 import Footer from "../componets/Footer";
+import { z } from "zod"; 
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -12,38 +12,52 @@ export default function Register() {
     password: "",
   });
 
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const Schema = z.object({
+    userName: z
+      .string()
+      .min(3, "Username must be at least 3 characters"),
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Invalid email format"),
+    password: z
+      .string()
+      .min(6, "Password must be at least 6 characters"),
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+
+    setErrors({
+      ...errors,
+      [e.target.name]: "",
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.userName) return alert("Username is required");
-    if (formData.userName.length < 3)
-      return alert("Username must be at least 3 characters");
-    if (!formData.email) return alert("Email is required");
-    if (!formData.password) return alert("Password is required");
-    if (formData.password.length < 6)
-      return alert("Password must be at least 6 characters");
+    const result = Schema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      setErrors(fieldErrors);
+      return;
+    }
 
     try {
-      await api.post(
-        "/user/create",
-        formData
-      );
+      await api.post("/user/create", formData);
 
       alert("User registered successfully!");
       navigate("/login");
     } catch (error) {
-      alert(
-        error.response?.data?.message || "Something went wrong!"
-      );
+      alert(error.response?.data?.message || "Something went wrong!");
     }
   };
 
@@ -72,6 +86,11 @@ export default function Register() {
               placeholder="Enter your username"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
+            {errors.userName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.userName[0]}
+              </p>
+            )}
           </div>
 
           <div className="mb-5">
@@ -86,6 +105,11 @@ export default function Register() {
               placeholder="Enter your email"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email[0]}
+              </p>
+            )}
           </div>
 
           <div className="mb-6">
@@ -100,6 +124,11 @@ export default function Register() {
               placeholder="Enter your password"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password[0]}
+              </p>
+            )}
           </div>
 
           <button

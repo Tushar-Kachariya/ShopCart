@@ -7,7 +7,7 @@ function Home() {
 
   const user = localStorage.getItem('name');
   return (
-    <>
+    <>  
       <Navbar />
 
       <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">

@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import User from "../Models/User.js";
 import jwt from 'jsonwebtoken';
+import Order from '../Models/order.js';
 
 const JWT_SEC = 'myjsonwebtoken';
 export const createUser = async (req, res) => {
@@ -49,11 +50,11 @@ export const login = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
-   
+
     if (!user) {
       return res.status(400).json({ message: "Email does not exist" });
     }
-    if (user.isBlocked=== true) {
+    if (user.isBlocked === true) {
       return res.status(400).json({ message: "User is block" });
     }
 
@@ -70,19 +71,22 @@ export const login = async (req, res) => {
         email: user.email,
         role: user.role
       },
-      JWT_SEC
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
     res.cookie("token", token, {
-      maxAge: 1000 * 60 * 10,
       httpOnly: true,
       secure: false,
+      sameSite: "lax",
     });
+
+
 
     res.status(201).json({
       message: "User login successfully",
       user,
-      token, 
+      token,
     });
 
   } catch (error) {
@@ -91,27 +95,93 @@ export const login = async (req, res) => {
   }
 };
 
+export const toggleBlockUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // toggle block
+    user.isBlocked = !user.isBlocked;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "User block status updated",
+      isBlocked: user.isBlocked,
+    });
+
+  } catch (error) {
+    console.error("TOGGLE BLOCK ERROR:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 
 
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const { userName, address } = req.body;
+
     const user = await User.findById(id);
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    user.isBlocked = !user.isBlocked;
-    await user.save({ validateBeforeSave: false });
+    // Update only allowed fields
+    if (userName) user.userName = userName;
+
+    if (address) {
+      user.address = {
+        fullName: address.fullName || user.address?.fullName,
+        phone: address.phone || user.address?.phone,
+        street: address.street || user.address?.street,
+        city: address.city || user.address?.city,
+        state: address.state || user.address?.state,
+        postalCode: address.postalCode || user.address?.postalCode,
+        country: address.country || user.address?.country || "India",
+        landmark: address.landmark || user.address?.landmark,
+      };
+    }
+
+    await user.save();
 
     res.status(200).json({
-      message: user.isBlocked ? "User blocked" : "User unblocked",
+      message: "Profile updated successfully",
       user,
     });
+
   } catch (error) {
     console.error("UPDATE USER ERROR:", error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const getuseroreder = async (req, res) => {
+  try {
+    console.log("Logged User:", req.user); 
+
+    const order = await Order.find({ userId: req.user._id })
+      .populate("userId", "userName email role address")
+      .populate("products.productId", "name price image category")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      order,
+    });
+
+  } catch (error) {
+    console.error("GET ORDER ERROR FULL:", error); 
+    res.status(500).json({ message: error.message }); 
   }
 };
 
@@ -151,7 +221,6 @@ export const getalluser = async (req, res) => {
     }
 
     res.status(200).json({
-
       user: getalluser,
     });
 
@@ -160,8 +229,6 @@ export const getalluser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 export const logOut = async (req, res) => {
 
@@ -180,13 +247,33 @@ export const logOut = async (req, res) => {
     res.clearCookie('connect.sid')
 
     res.status(200).json({
-
-
       message: "logout successfully"
     });
 
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUserProfile = async (req, res) => {
+  try {
+    const userId = req.session.userId; 
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ user });
+
+  } catch (error) {
+    console.error("GET PROFILE ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };

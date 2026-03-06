@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../componets/Navbar";
 import Footer from "../componets/Footer";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import api from "../api/axios";
 import { addToCart } from "../features/cart/cartSlice";
 import { useNavigate } from "react-router-dom";
+import { selectCartItems } from "../features/cart/cartSelectors";
+import { useLoading } from "../global/LoadingContext";
 
 export default function RegularUser() {
+  const { showLoader, hideLoader } = useLoading();
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
@@ -18,19 +21,24 @@ export default function RegularUser() {
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
   const dispatch = useDispatch();
+  const cartItem = useSelector(selectCartItems);
 
-
+  const isInCart = (id) => {
+    return cartItem.some((item) => item._id === id);
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
+      
       try {
+        
         const res = await api.get(
           `/RegularUser/SearchProduct?search=${query}`
         );
         setProducts(res.data);
       } catch (error) {
         console.log("Search Error:", error.message);
-      }
+      } 
     };
 
     fetchProducts();
@@ -143,27 +151,34 @@ export default function RegularUser() {
                         {product.description}
                       </p>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
+                      {product.instock > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
 
-                          dispatch(
-                            addToCart({
-                              _id: product._id,
-                              name: product.name,
-                              price: product.price,
-                              category: product.category,
-                              instock: product.instock,
-                              // ✅ send a usable image
-                              image: product.image || product.images?.[0] || null,
-                              images: product.images || [],
-                            })
-                          );
-                        }}
-                        className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 active:scale-95 transition"
-                      >
-                        Add to Cart
-                      </button>
+                            if (!isInCart(product._id)) {
+                              dispatch(
+                                addToCart({
+                                  _id: product._id,
+                                  name: product.name,
+                                  price: product.price,
+                                  category: product.category,
+                                  instock: product.instock,
+                                  image: product.image || product.images?.[0] || null,
+                                  images: product.images || [],
+                                })
+                              );
+                            }
+                          }}
+                          className={`mt-4 w-full py-2 rounded-lg transition active:scale-95
+                           ${isInCart(product._id)
+                              ? "bg-green-600 text-white cursor-not-allowed"
+                              : "bg-blue-600 text-white hover:bg-blue-700"
+                            }`}
+                        >
+                          {isInCart(product._id) ? "Added to Cart " : "Add to Cart"}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

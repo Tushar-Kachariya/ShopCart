@@ -75,7 +75,6 @@ export default function AdminUsers() {
               <th className="p-4 text-center">Email</th>
               <th className="p-4 text-center">Role</th>
               <th className="p-4 text-center">Phone</th>
-              <th className="p-4 text-center">City</th>
               <th className="p-4 text-center">Delete</th>
               <th className="p-4 text-center">Block</th>
             </tr>
@@ -101,11 +100,9 @@ export default function AdminUsers() {
                     </span>
                   </td>
                   <td className="p-4 text-center">
-                    {u.address?.phone || "-"}
+                    {u.contect || "-"}
                   </td>
-                  <td className="p-4 text-center">
-                    {u.address?.city || "-"}
-                  </td>
+                 
                   <td className="p-4 text-center">
                     <button
                       onClick={() => openDeleteModal(u._id)}

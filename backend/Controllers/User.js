@@ -1,37 +1,110 @@
 import bcrypt from 'bcrypt';
 import User from "../Models/User.js";
 import jwt from 'jsonwebtoken';
+import otpGenerator from "otp-generator";
 import Order from '../Models/order.js';
+import { transporter } from "../config/Email.config.js";
 
-const JWT_SEC = 'myjsonwebtoken';
+
 export const createUser = async (req, res) => {
   try {
+    const { email, userName, contect, password } = req.body;
 
-    const { email, userName, password } = req.body;
+    if (!email || !userName || !contect || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
+    const existingUser = await User.findOne({ email });
+    const existingContact = await User.findOne({ contect });
 
-    const exiestEmail = await User.findOne({ email });
+    if (existingContact && !existingUser) {
+      return res.status(400).json({
+        message: "Contact number already registered",
+      });
+    }
 
-    if (exiestEmail) {
-      return res.status(400).json({ message: "Email already exists" });
+    const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false, });
+
+    const otpExpire = Date.now() + 5 * 60 * 1000;
+
+    if (existingUser) {
+
+      if (existingUser.isVerified) {
+        return res.status(400).json({
+          message: "Email already registered",
+        });
+      }
+
+      existingUser.userName = userName;
+      existingUser.contect = contect;
+      existingUser.password = await bcrypt.hash(password, 10);
+      existingUser.otp = otp;
+      existingUser.otpExpire = otpExpire;
+
+      await existingUser.save();
+
+      await transporter.sendMail({
+        from: `"ShopCart Support" <${process.env.EMAIL}>`,
+        to: email,
+        subject: "ShopCart Email Verification OTP",
+        html: `
+        <div style="font-family:Arial;background:#f4f4f4;padding:30px;">
+          <div style="max-width:500px;margin:auto;background:white;padding:30px;border-radius:10px;text-align:center;">
+            <h2 style="color:#111;">Verify Your Email</h2>
+            <p>Hello <b>${userName}</b>, use the OTP below to verify your ShopCart account.</p>
+            <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#2563eb;margin:20px 0;">
+              ${otp}
+            </div>
+            <p>This OTP will expire in <b>5 minutes</b>.</p>
+            <p style="font-size:12px;color:gray;">If you didn't request this email, ignore it.</p>
+          </div>
+        </div>
+        `,
+      });
+
+      return res.status(200).json({
+        message: "OTP resent to your email",
+      });
     }
 
     const hashpassword = await bcrypt.hash(password, 10);
 
-    const NewUser = await new User({
+    const user = new User({
       userName,
       email,
-      password: hashpassword
+      contect,
+      password: hashpassword,
+      otp,
+      otpExpire,
+      isVerified: false,
     });
 
-    const saveUser = await NewUser.save();
+    await user.save();
 
-    res.status(201).json({
-      message: "User registered successfully",
-      saveUser,
+    await transporter.sendMail({
+      from: `"ShopCart Support" <${process.env.EMAIL}>`,
+      to: email,
+      subject: "ShopCart Email Verification OTP",
+      html: `
+      <div style="font-family:Arial;background:#f4f4f4;padding:30px;">
+        <div style="max-width:500px;margin:auto;background:white;padding:30px;border-radius:10px;text-align:center;">
+          <h2 style="color:#111;">Verify Your Email</h2>
+          <p>Hello <b>${userName}</b>, use the OTP below to verify your ShopCart account.</p>
+          <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#2563eb;margin:20px 0;">
+            ${otp}
+          </div>
+          <p>This OTP will expire in <b>5 minutes</b>.</p>
+          <p style="font-size:12px;color:gray;">If you didn't request this email, ignore it.</p>
+        </div>
+      </div>
+      `,
     });
+
+    res.status(200).json({
+      message: "OTP sent to your email",
+    });
+
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -57,7 +130,11 @@ export const login = async (req, res) => {
     if (user.isBlocked === true) {
       return res.status(400).json({ message: "User is block" });
     }
-
+    if (!user.isVerified) {
+      return res.status(400).json({
+        message: "Please verify your email first"
+      })
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Password is incorrect" });
@@ -165,23 +242,31 @@ export const updateUser = async (req, res) => {
   }
 };
 
-export const getuseroreder = async (req, res) => {
+export const getUserOrder = async (req, res) => {
   try {
-    console.log("Logged User:", req.user); 
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
 
-    const order = await Order.find({ userId: req.user._id })
-      .populate("userId", "userName email role address")
-      .populate("products.productId", "name price image category")
+    const orders = await Order.find({
+      userId: req.user._id,
+    })
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      order,
+      orders,   // IMPORTANT: property name = orders
     });
 
   } catch (error) {
-    console.error("GET ORDER ERROR FULL:", error); 
-    res.status(500).json({ message: error.message }); 
+    console.error("GET USER ORDER ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
   }
 };
 
@@ -258,7 +343,7 @@ export const logOut = async (req, res) => {
 
 export const getUserProfile = async (req, res) => {
   try {
-    const userId = req.session.userId; 
+    const userId = req.session.userId;
 
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
@@ -274,6 +359,41 @@ export const getUserProfile = async (req, res) => {
 
   } catch (error) {
     console.error("GET PROFILE ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const verifyOTP = async (req, res) => {
+  try {
+
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (user.otpExpire < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpire = null;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Email verified successfully"
+    });
+
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };

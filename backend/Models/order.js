@@ -15,24 +15,40 @@ const orderSchema = new mongoose.Schema(
           ref: "Product",
           required: true,
         },
-        image: {
-          type: String,
-          required: true,
-        },
+        image: String,
         name: String,
         price: Number,
-        quantity: {
-          type: Number,
-          required: true,
-        },
-        total: Number
-
+        quantity: Number,
+        total: Number,
       },
-
     ],
+
+    shippingAddress: {
+      fullName: String,
+      phone: String,
+      address: String,
+      city: String,
+      state: String,
+      pincode: String,
+    },
+
+    billingAddress: {
+      fullName: String,
+      phone: String,
+      address: String,
+      city: String,
+      state: String,
+      pincode: String,
+    },
+
+    paymentMethod: {
+      type: String,
+      default: "COD",
+    },
+
     charge: {
       type: Number,
-      default: 50
+      default: 50,
     },
 
     totalAmount: {

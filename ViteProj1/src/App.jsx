@@ -14,7 +14,7 @@ import {
   RestrictForAdmin,
   RestrictForUser,
 } from "./ProtectedRoute";
-
+import VerifyOTP from "./pages/VerifyOTP";
 import ProfilePage from "./pages/ProfilePage";
 import Cart from "./pages/Cart";
 import OrderSuccess from "./componets/OrderSuccess";
@@ -24,6 +24,7 @@ import AdminShowOrder from "./pages/AdminShowOrder";
 import UserOrder from "./pages/userOrder";
 import AddProduct from "./componets/AddProduct";
 import UpdateProduct from "./componets/UpdateProduct";
+import CheckoutPage from "./componets/checkoutPage";
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
             </RedirectIfLoggedIn>
           }
         />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
 
         <Route
           path="/login"
@@ -74,6 +76,17 @@ export default function App() {
             <ProtectedRoute>
               <RestrictForAdmin>
                 <OrderSuccess />
+              </RestrictForAdmin>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <RestrictForAdmin>
+                <CheckoutPage />
               </RestrictForAdmin>
             </ProtectedRoute>
           }

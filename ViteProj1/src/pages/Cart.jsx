@@ -3,7 +3,6 @@ import Navbar from "../componets/Navbar";
 import Footer from "../componets/Footer";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import api from "../api/axios.js";
 import { selectSubTotal, selectTotalPrice, selectCartItems } from "../features/cart/cartSelectors.js";
 import {
   incQty,
@@ -27,29 +26,8 @@ export default function Cart() {
   const totalPages = Math.ceil(cartItems.length / itemsPerPage);
 
   const navigate = useNavigate();
-  const handelplacesubmit = async () => {
-    try {
-      const res = await api.post(
-        "/RegularUser/place",
-        { cartItems, totalPrice }
-      );
+  
 
-      if (res.data.success) {
-        console.log("Order placed successfully");
-        dispatch(clearCart());
-        navigate('/ordersuccess');
-      } else {
-        alert(res.data.message);
-      }
-
-    } catch (error) {
-      const message =
-        error.response?.data?.message || "Something went wrong";
-
-      console.log("Backend error:", message);
-      alert("Please complete login and your profile first");
-    }
-  };
 
   return (
     <>
@@ -76,7 +54,6 @@ export default function Cart() {
                 key={p._id}
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 mb-4"
               >
-                {/* Left Section (Image + Info) */}
                 <div
                   onClick={() => navigate(`/product/${p._id}`)}
                   className="flex items-center gap-4 cursor-pointer flex-1"
@@ -84,11 +61,11 @@ export default function Cart() {
                   <img
                     src={
                       p.image
-                        ? p.image.startsWith("data:") // base64
+                        ? p.image.startsWith("data:") 
                           ? p.image
-                          : p.image.startsWith("http") // already full url
+                          : p.image.startsWith("http") 
                             ? p.image
-                            : `http://localhost:5000${p.image}` // "/uploads/.."
+                            : `http://localhost:5000${p.image}` 
                         : "https://via.placeholder.com/150"
                     }
                     alt={p.name}
@@ -104,7 +81,6 @@ export default function Cart() {
                   </div>
                 </div>
 
-                {/* Quantity Controls */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => dispatch(decQty(p._id))}
@@ -125,7 +101,6 @@ export default function Cart() {
                   </button>
                 </div>
 
-                {/* Remove Button */}
                 <button
                   onClick={() => dispatch(removeItem(p._id))}
                   className="text-sm text-red-500 hover:underline"
@@ -172,10 +147,11 @@ export default function Cart() {
                 </div>
               </div>
               <button
-                onClick={handelplacesubmit}
-                className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition"
+                onClick={()=>navigate('/checkout')}
+                 
+                className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Proceed to Checkout
+                Process to CheckOut
               </button>
             </div>
           )}

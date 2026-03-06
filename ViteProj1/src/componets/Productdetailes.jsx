@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import Navbar from "./Navbar";
-import { Navigate } from "react-router-dom";
 import Footer from "./Footer";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -93,18 +92,22 @@ export default function ProductDetailsView() {
               {currentIndex > 0 && (
                 <button
                   onClick={prevImage}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 text-white px-3 py-2 rounded-full"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/30 text-white px-3 py-2 rounded-full"
                 >
-                  ◀
+                  <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 8 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 1 1.3 6.326a.91.91 0 0 0 0 1.348L7 13" />
+                  </svg>
                 </button>
               )}
 
               {currentIndex < product.images.length - 1 && (
                 <button
                   onClick={nextImage}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 text-white px-3 py-2 rounded-full"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/30 text-white px-3 py-2 rounded-full"
                 >
-                  ▶
+                  <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 8 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 13 5.7-5.326a.909.909 0 0 0 0-1.348L1 1" />
+                  </svg>
                 </button>
               )}
 
@@ -116,7 +119,10 @@ export default function ProductDetailsView() {
                 <button
                   onClick={() => navigate("/regularuser")}
                   className="absolute top-2 right-2 backdrop-blur-md bg-white-700 font-bold border-2 border-black text-white px-3 py-2 rounded-md">
-                  ❌
+                  <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+                  </svg>
+
                 </button>
                 <h1 className="text-3xl mb-2 font-bold">
                   {product.name}
@@ -128,9 +134,17 @@ export default function ProductDetailsView() {
                   ₹{product.price}
                 </p>
 
-                <p className=" font-bold mt-2">
-                  Instock : {product.instock}
-                </p>
+                {product.instock === 0 && (
+                  <p className="text-red-600 font-bold mt-2">
+                    Out of Stock
+                  </p>
+                )}
+
+                {product.instock > 0 && (
+                  <span className="text-green-600">
+                    In Stock : {product.instock}
+                  </span>
+                )}
 
 
                 <p className="mt-4 text-gray-600">
@@ -167,24 +181,30 @@ export default function ProductDetailsView() {
                 )}
 
                 <div className="mt-6">
-                  <button
-                    onClick={() =>
-                      dispatch(
-                        addToCart({
-                          _id: product._id,
-                          name: product.name,
-                          price: product.price,
-                          category: product.category,
-                          instock: product.instock,
-                          image: product.image || product.images?.[0] || null,
-                          images: product.images || [],
-                        })
-                      )
-                    }
-                    className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition"
-                  >
-                    {quantity > 0 ? "Added to Cart" : "Add to Cart"}
-                  </button>
+                  {product.instock > 0 &&
+
+                    <button
+                      onClick={() =>
+                        dispatch(
+                          addToCart({
+                            _id: product._id,
+                            name: product.name,
+                            price: product.price,
+                            category: product.category,
+                            instock: product.instock,
+                            image: product.image || product.images?.[0] || null,
+                            images: product.images || [],
+                          })
+                        )
+                      }
+                      className={`px-6 py-3 rounded-lg transition duration-300 ${quantity > 0
+                        ? "bg-green-600 hover:bg-green-700 text-white"
+                        : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                        }`}
+                    >
+                      {quantity > 0 ? "Added to Cart" : "Add to Cart"}
+                    </button>
+                  }
                 </div>
               </div>
             </div>

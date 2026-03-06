@@ -2,14 +2,15 @@ import express from "express";
 import { getUserProfile } from "../Controllers/User.js";
 import { toggleBlockUser } from "../Controllers/User.js";
 import { isAuth, isAdmin } from "../middleware/auth.js";
-
-import { createUser, login,updateUser,deleteUser,getalluser,logOut,getuseroreder } from "../Controllers/User.js";
+import { verifyOTP } from "../Controllers/User.js";
+import { createUser, login,updateUser,deleteUser,getalluser,logOut,getUserOrder } from "../Controllers/User.js";
 
 const routes = express.Router();
 
 routes.post("/create", createUser);
+routes.post('/verify-otp',verifyOTP)
 routes.post("/login", login);
-routes.get('/getuserorder',isAuth,getuseroreder)
+routes.get('/getuserorder',isAuth,getUserOrder)
 routes.post("/logout", logOut);
 
 routes.put("/updateuser/:id", updateUser);

@@ -3,12 +3,13 @@ import Navbar from "../componets/Navbar";
 import api from "../api/axios";
 import { useNavigate, NavLink } from "react-router-dom";
 import Footer from "../componets/Footer";
-import { z } from "zod"; 
+import { z } from "zod";
 
 export default function Register() {
   const [formData, setFormData] = useState({
     userName: "",
     email: "",
+    contect: "",
     password: "",
   });
 
@@ -19,6 +20,9 @@ export default function Register() {
     userName: z
       .string()
       .min(3, "Username must be at least 3 characters"),
+    contect: z
+      .string()
+      .min(10, "contect must be at least 10 Number"),
     email: z
       .string()
       .min(1, "Email is required")
@@ -52,10 +56,14 @@ export default function Register() {
     }
 
     try {
-      await api.post("/user/create", formData);
+      const res = await api.post("/user/create", formData);
 
-      alert("User registered successfully!");
-      navigate("/login");
+      alert("OTP sent to your email");
+
+      navigate("/verify-otp", {
+        state: { email: formData.email }
+      });
+
     } catch (error) {
       alert(error.response?.data?.message || "Something went wrong!");
     }
@@ -108,6 +116,29 @@ export default function Register() {
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.email[0]}
+              </p>
+            )}
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 font-medium mb-2">
+              Contact No
+            </label>
+            <input
+              type="number"
+              name="contect"
+              value={formData.contect}
+              onChange={handleChange}
+              placeholder="Enter your contect"
+              onKeyDown={(e) => {
+                if (["e", "E", "+", "-"].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.contect}
               </p>
             )}
           </div>

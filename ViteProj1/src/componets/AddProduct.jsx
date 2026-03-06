@@ -9,7 +9,7 @@ export default function AddProduct() {
   const [data, setData] = useState({
     name: "",
     price: "",
-    quantity:"",
+    quantity: "",
     category: "",
     description: "",
     image: [],
@@ -18,13 +18,26 @@ export default function AddProduct() {
   const [errors, setErrors] = useState({});
 
   const schema = z.object({
-    name: z.string().min(2, "Product name must be at least 2 characters"),
-    price: z.coerce.number().min(1, "Price must be greater than 0"),
-    quantity: z.coerce.number().min(1, "quantity must be greater than 0"),
+    name: z.string().min(3, "Product name must be at least 3 characters"),
+
+    price: z
+      .string()
+      .regex(/^\d+$/, "Price must contain only numbers")
+      .transform(Number)
+      .refine((val) => val > 0, "Price must be greater than 0"),
+
+    quantity: z
+      .string()
+      .regex(/^\d+$/, "Quantity must contain only numbers")
+      .transform(Number)
+      .refine((val) => val > 0, "Quantity must be greater than 0"),
+
     category: z.string().min(1, "Category is required"),
+
     description: z
       .string()
       .min(10, "Description must be at least 10 characters"),
+
     images: z.array(z.instanceof(File)).min(1, "At least 1 image is required"),
   });
 
@@ -72,9 +85,8 @@ export default function AddProduct() {
       formData.append("description", data.description);
 
       data.images.forEach((file) => {
-        formData.append("images", file);  
+        formData.append("images", file);
       });
-      console.log(formData.values)
       await api.post("/admin/create", formData, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
@@ -102,6 +114,7 @@ export default function AddProduct() {
             name="name"
             placeholder="Name"
             onChange={handleChange}
+            
           />
           <p className="text-red-500 text-sm">{errors.name}</p>
         </div>
@@ -114,6 +127,11 @@ export default function AddProduct() {
             type="number"
             placeholder="Price"
             onChange={handleChange}
+            onKeyDown={(e) => {
+              if (["e", "E", "+", "-"].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
           />
           <p className="text-red-500 text-sm">{errors.price}</p>
         </div>
@@ -126,6 +144,11 @@ export default function AddProduct() {
             type="number"
             placeholder="quantity"
             onChange={handleChange}
+            onKeyDown={(e) => {
+              if (["e", "E", "+", "-"].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
           />
           <p className="text-red-500 text-sm">{errors.quantity}</p>
         </div>
